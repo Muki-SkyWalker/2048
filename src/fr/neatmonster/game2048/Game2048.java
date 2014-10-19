@@ -32,9 +32,10 @@ import java.util.List;
 import java.util.Random;
 
 public class Game2048 extends JPanel {
-    private static final Random random = new Random();
-    private static final Color BACKGROUND = new Color(0xbbada0);
+    private static final Random random     = new Random();
+    private static final Color  BACKGROUND = new Color(0xbbada0);
     public static Font FONT;
+
     static {
         try {
             FONT = Font.createFont(Font.TRUETYPE_FONT, Game2048.class.getResourceAsStream("/ClearSans-Bold.ttf"));
@@ -42,6 +43,7 @@ public class Game2048 extends JPanel {
             e.printStackTrace();
         }
     }
+
     public static GameOver gameOver = null;
     private final Animator animator;
     private final Tile[] board = new Tile[16];
@@ -77,8 +79,6 @@ public class Game2048 extends JPanel {
                     return;
                 if (delay > 0)
                     insertRandomTile(delay);
-                if (isBlocked())
-                    animator.add(new GameOver());
             }
         });
     }
@@ -109,7 +109,7 @@ public class Game2048 extends JPanel {
         return board[x + y * 4];
     }
 
-    boolean isBlocked() {
+    public boolean isBlocked() {
         if (emptyTiles().size() > 0)
             return false;
         for (int x = 0; x < 3; x++)

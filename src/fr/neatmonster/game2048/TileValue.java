@@ -48,6 +48,7 @@ public enum TileValue {
     private final TileColor foreground;
     private final float     fontSize;
     private final int       offset;
+
     private TileValue(final int value, final int background, final int foreground, final float fontSize, final int offset) {
         this.value = value;
         this.background = new TileColor(background);

@@ -40,7 +40,8 @@ class Animation {
             terminate();
     }
 
-    void terminate() {}
+    void terminate() {
+    }
 
     public boolean hasTerminated() {
         return current >= duration;

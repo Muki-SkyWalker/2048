@@ -30,6 +30,7 @@ import java.util.List;
 class Animator extends Thread {
     private final Game2048 game;
     private final List<Animation> animations = new ArrayList<Animation>();
+    private       boolean         wasPlaying = false;
 
     public Animator(final Game2048 game) {
         this.game = game;
@@ -48,8 +49,14 @@ class Animator extends Thread {
     @Override
     public void run() {
         while (true) {
-            if (isPlaying())
+            if (isPlaying()) {
+                wasPlaying = true;
                 game.repaint();
+            } else if (wasPlaying) {
+                if (game.isBlocked())
+                    add(new GameOver());
+                wasPlaying = false;
+            }
             try {
                 Thread.sleep(1L);
             } catch (final InterruptedException ignored) {
