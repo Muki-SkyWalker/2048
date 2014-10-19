@@ -39,6 +39,7 @@ public class Game2048 extends JPanel {
     private static final Color  FOOTER_COLOR    = new Color(0xbbac99);
     private static final Color  HEADER_COLOR    = new Color(0xf9f6f2);
     private static final Color  TEXT_COLOR      = new Color(0xeee4da);
+    private static final Color  LOGO_COLOR      = new Color(0x776e65);
     public static Font FONT;
 
     static {
@@ -52,6 +53,7 @@ public class Game2048 extends JPanel {
     private final Animator animator;
     private final Tile[]   board    = new Tile[16];
     public        GameOver gameOver = null;
+    private       int      best     = 0;
     private       int      moves    = 0;
     private       int      score    = 0;
 
@@ -69,12 +71,12 @@ public class Game2048 extends JPanel {
             public void keyPressed(final KeyEvent e) {
                 final int key = e.getKeyCode();
                 if (animator.isPlaying() && gameOver == null && (key == 27 || key >= 37 && key <= 40))
-                    animator.terminate();
+                    animator.terminate(false);
                 else if (animator.isPlaying())
                     return;
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
                     reset();
-                if (gameOver != null)
+                if (gameOver != null || isBlocked())
                     return;
                 final int delay;
                 if (e.getKeyCode() == KeyEvent.VK_UP)
@@ -108,9 +110,12 @@ public class Game2048 extends JPanel {
     }
 
     void reset() {
+        if (score > best)
+            best = score;
         moves = score = 0;
         gameOver = null;
         animator.reset();
+        animator.terminate(true);
         for (final Tile tile : board)
             tile.setValue(TileValue.TILE_EMPTY);
         insertRandomTile(0);
@@ -151,6 +156,8 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(x, yEmpty - 1)));
                     animator.add(new Fusion(getTile(x, yEmpty - 1), getTile(x, yEmpty - 1).getFutureValue().next()));
                     score += getTile(x, yEmpty - 1).getFutureValue().next().getValue();
+                    if (score > best)
+                        best = score;
                     delay = 100;
                     yLimit++;
                 } else if (yEmpty < y) {
@@ -177,6 +184,8 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(x, yEmpty + 1)));
                     animator.add(new Fusion(getTile(x, yEmpty + 1), getTile(x, yEmpty + 1).getFutureValue().next()));
                     score += getTile(x, yEmpty + 1).getFutureValue().next().getValue();
+                    if (score > best)
+                        best = score;
                     delay = 100;
                     yLimit--;
                 } else if (yEmpty > y) {
@@ -203,6 +212,8 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(xEmpty - 1, y)));
                     animator.add(new Fusion(getTile(xEmpty - 1, y), getTile(xEmpty - 1, y).getFutureValue().next()));
                     score += getTile(xEmpty - 1, y).getFutureValue().next().getValue();
+                    if (score > best)
+                        best = score;
                     delay = 100;
                     xLimit++;
                 } else if (xEmpty < x) {
@@ -229,6 +240,8 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(xEmpty + 1, y)));
                     animator.add(new Fusion(getTile(xEmpty + 1, y), getTile(xEmpty + 1, y).getFutureValue().next()));
                     score += getTile(xEmpty + 1, y).getFutureValue().next().getValue();
+                    if (score > best)
+                        best = score;
                     delay = 100;
                     xLimit--;
                 } else if (xEmpty > x) {
@@ -261,29 +274,50 @@ public class Game2048 extends JPanel {
     public void paint(final Graphics g_) {
         super.paint(g_);
         final Graphics2D g = (Graphics2D) g_;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
         g.setColor(BACKGROUND);
         g.fillRect(0, 0, 539, 691);
+        g.setColor(LOGO_COLOR);
+        Font font = FONT.deriveFont(80f);
+        g.setFont(font);
+        g.drawString("2048", 22, 95);
+        final String best = Integer.toString(this.best);
+        font = FONT.deriveFont(40f);
+        Rectangle2D bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), best).getVisualBounds();
+        final int bestWidth = Math.max(85, 32 + (int) bounds.getWidth());
+        g.setColor(GRID_BACKGROUND);
+        g.fillRoundRect(517 - bestWidth, 22, bestWidth, 92, 6, 6);
+        g.setColor(HEADER_COLOR);
+        font = FONT.deriveFont(23f);
+        g.setFont(font);
+        bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), "BEST").getVisualBounds();
+        g.drawString("BEST", 516 - (int) bounds.getWidth() - (int) ((bestWidth - bounds.getWidth()) / 2f), 54);
+        g.setColor(TEXT_COLOR);
+        font = FONT.deriveFont(40f);
+        g.setFont(font);
+        bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), best).getVisualBounds();
+        int offset = best.startsWith("1") ? 4 : 0;
+        g.drawString(best, 515 - offset - (int) bounds.getWidth() - (int) ((bestWidth - bounds.getWidth()) / 2f), 98);
         final String score = Integer.toString(this.score);
-        Font font = FONT.deriveFont(40f);
-        Rectangle2D bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
-        final int width = Math.max(102, 32 + (int) bounds.getWidth());
+        font = FONT.deriveFont(40f);
+        bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
+        final int scoreWidth = Math.max(102, 32 + (int) bounds.getWidth());
         g.setColor(GRID_BACKGROUND);
-        g.fillRoundRect(517 - width, 22, width, 92, 6, 6);
-        g.setColor(GRID_BACKGROUND);
-        g.fillRoundRect(22, 136, 495, 495, 6, 6);
+        g.fillRoundRect(517 - bestWidth - 16 - scoreWidth, 22, scoreWidth, 92, 6, 6);
         g.setColor(HEADER_COLOR);
         font = FONT.deriveFont(23f);
         g.setFont(font);
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), "SCORE").getVisualBounds();
-        g.drawString("SCORE", 516 - (int) bounds.getWidth() - (int) ((width - bounds.getWidth()) / 2f), 54);
+        g.drawString("SCORE", 516 - bestWidth - 16 - (int) bounds.getWidth() - (int) ((scoreWidth - bounds.getWidth()) / 2f), 54);
         g.setColor(TEXT_COLOR);
         font = FONT.deriveFont(40f);
         g.setFont(font);
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
-        final int offset = score.startsWith("1") ? 4 : 0;
-        g.drawString(score, 515 - offset - (int) bounds.getWidth() - (int) ((width - bounds.getWidth()) / 2f), 98);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+        offset = score.startsWith("1") ? 4 : 0;
+        g.drawString(score, 515 - bestWidth - 16 - offset - (int) bounds.getWidth() - (int) ((scoreWidth - bounds.getWidth()) / 2f), 98);
+        g.setColor(GRID_BACKGROUND);
+        g.fillRoundRect(22, 136, 495, 495, 6, 6);
         for (final Tile tile : board)
             tile.paint(g);
         animator.paint(g);

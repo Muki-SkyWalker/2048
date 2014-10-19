@@ -95,7 +95,7 @@ class Animator extends Thread {
         }
     }
 
-    public void terminate() {
+    public void terminate(final boolean force) {
         synchronized (animations) {
             final List<Animation> sortedAnimations = new ArrayList<Animation>(animations);
             Collections.sort(sortedAnimations);
@@ -104,6 +104,8 @@ class Animator extends Thread {
                     animation.terminate();
                     animations.remove(animation);
                 }
+            if (force)
+                animations.clear();
         }
     }
 }
