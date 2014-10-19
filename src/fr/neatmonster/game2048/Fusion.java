@@ -54,6 +54,7 @@ public class Fusion extends Animation {
 
     @Override
     public void terminate() {
+        tile.setFutureValue(value);
         tile.actualize();
     }
 }

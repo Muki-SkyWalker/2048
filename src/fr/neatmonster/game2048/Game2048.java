@@ -44,9 +44,9 @@ public class Game2048 extends JPanel {
         }
     }
 
-    public static GameOver gameOver = null;
     private final Animator animator;
-    private final Tile[] board = new Tile[16];
+    private final Tile[]   board    = new Tile[16];
+    public        GameOver gameOver = null;
 
     public Game2048() {
         animator = new Animator(this);
@@ -60,13 +60,16 @@ public class Game2048 extends JPanel {
 
             @Override
             public void keyPressed(final KeyEvent e) {
-                if (animator.isPlaying())
+                final int key = e.getKeyCode();
+                if (animator.isPlaying() && gameOver == null && (key == 27 || key >= 37 && key <= 40))
+                    animator.terminate();
+                else if (animator.isPlaying())
                     return;
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
                     reset();
                 if (gameOver != null)
                     return;
-                int delay;
+                final int delay;
                 if (e.getKeyCode() == KeyEvent.VK_UP)
                     delay = moveUp();
                 else if (e.getKeyCode() == KeyEvent.VK_DOWN)

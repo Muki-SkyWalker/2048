@@ -25,7 +25,7 @@ package fr.neatmonster.game2048;
 
 import java.awt.*;
 
-class Animation {
+class Animation implements Comparable {
     final int duration;
     int current;
 
@@ -35,8 +35,7 @@ class Animation {
     }
 
     public void paint(final Graphics2D g) {
-        current++;
-        if (current >= duration)
+        if (++current >= duration)
             terminate();
     }
 
@@ -49,5 +48,12 @@ class Animation {
 
     float getPercentage() {
         return (float) current / (float) duration;
+    }
+
+    @Override
+    public int compareTo(final Object o) {
+        if (o instanceof Animation)
+            return duration - ((Animation) o).duration;
+        return 1;
     }
 }

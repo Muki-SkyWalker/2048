@@ -25,6 +25,7 @@ package fr.neatmonster.game2048;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class Animator extends Thread {
@@ -53,8 +54,8 @@ class Animator extends Thread {
                 wasPlaying = true;
                 game.repaint();
             } else if (wasPlaying) {
-                if (game.isBlocked())
-                    add(new GameOver());
+                if (game.isBlocked() && game.gameOver == null)
+                    add(new GameOver(game));
                 wasPlaying = false;
             }
             try {
@@ -73,6 +74,18 @@ class Animator extends Thread {
     public void add(final Animation animation) {
         synchronized (animations) {
             animations.add(animation);
+        }
+    }
+
+    public void terminate() {
+        synchronized (animations) {
+            final List<Animation> sortedAnimations = new ArrayList<Animation>(animations);
+            Collections.sort(sortedAnimations);
+            for (final Animation animation : sortedAnimations)
+                if (!(animation instanceof GameOver)) {
+                    animation.terminate();
+                    animations.remove(animation);
+                }
         }
     }
 }

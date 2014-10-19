@@ -26,9 +26,11 @@ package fr.neatmonster.game2048;
 import java.awt.*;
 
 public class GameOver extends Animation {
+    private final Game2048 game;
 
-    public GameOver() {
+    public GameOver(final Game2048 game) {
         super(800);
+        this.game = game;
     }
 
     @Override
@@ -47,6 +49,6 @@ public class GameOver extends Animation {
 
     @Override
     public void terminate() {
-        Game2048.gameOver = this;
+        game.gameOver = this;
     }
 }
