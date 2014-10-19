@@ -41,10 +41,10 @@ public class GameOver extends Animation {
 
     public void forcePaint(final Graphics2D g) {
         g.setColor(new Color(238, 228, 218, (int) (getPercentage() * 186f)));
-        g.fillRect(0, 0, 495, 495);
+        g.fillRect(22, 136, 495, 495);
         g.setColor(new Color(119, 110, 101, (int) (getPercentage() * 255f)));
         g.setFont(Game2048.FONT.deriveFont(60f));
-        g.drawString("Game over!", 93, 268);
+        g.drawString("Game over!", 115, 404);
     }
 
     @Override

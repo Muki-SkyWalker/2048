@@ -46,11 +46,11 @@ class Tile {
     }
 
     public int getScreenX() {
-        return 15 + 120 * x;
+        return 22 + 15 + 120 * x;
     }
 
     public int getScreenY() {
-        return 15 + 120 * y;
+        return 136 + 15 + 120 * y;
     }
 
     public TileValue getValue() {

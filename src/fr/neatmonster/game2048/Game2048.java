@@ -27,13 +27,18 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Game2048 extends JPanel {
-    private static final Random random     = new Random();
-    private static final Color  BACKGROUND = new Color(0xbbada0);
+    private static final Random random          = new Random();
+    private static final Color  BACKGROUND      = new Color(0xfaf8ef);
+    private static final Color  GRID_BACKGROUND = new Color(0xbbada0);
+    private static final Color  FOOTER_COLOR    = new Color(0xbbac99);
+    private static final Color  HEADER_COLOR    = new Color(0xf9f6f2);
+    private static final Color  TEXT_COLOR      = new Color(0xeee4da);
     public static Font FONT;
 
     static {
@@ -47,6 +52,8 @@ public class Game2048 extends JPanel {
     private final Animator animator;
     private final Tile[]   board    = new Tile[16];
     public        GameOver gameOver = null;
+    private       int      moves    = 0;
+    private       int      score    = 0;
 
     public Game2048() {
         animator = new Animator(this);
@@ -80,6 +87,7 @@ public class Game2048 extends JPanel {
                     delay = moveRight();
                 else
                     return;
+                moves++;
                 if (delay > 0)
                     insertRandomTile(delay);
             }
@@ -88,7 +96,7 @@ public class Game2048 extends JPanel {
 
     public static void main(final String[] args) {
         final Game2048 game = new Game2048();
-        game.setPreferredSize(new Dimension(495, 495));
+        game.setPreferredSize(new Dimension(539, 691));
         final JFrame frame = new JFrame();
         frame.setTitle("2048");
         frame.setResizable(false);
@@ -100,7 +108,9 @@ public class Game2048 extends JPanel {
     }
 
     void reset() {
+        moves = score = 0;
         gameOver = null;
+        animator.reset();
         for (final Tile tile : board)
             tile.setValue(TileValue.TILE_EMPTY);
         insertRandomTile(0);
@@ -140,6 +150,7 @@ public class Game2048 extends JPanel {
                 if (yEmpty > yLimit && getTile(x, yEmpty - 1).getFutureValue() == tile.getValue()) {
                     animator.add(new Move(tile, getTile(x, yEmpty - 1)));
                     animator.add(new Fusion(getTile(x, yEmpty - 1), getTile(x, yEmpty - 1).getFutureValue().next()));
+                    score += getTile(x, yEmpty - 1).getFutureValue().next().getValue();
                     delay = 100;
                     yLimit++;
                 } else if (yEmpty < y) {
@@ -165,6 +176,7 @@ public class Game2048 extends JPanel {
                 if (yEmpty < yLimit && getTile(x, yEmpty + 1).getFutureValue() == tile.getValue()) {
                     animator.add(new Move(tile, getTile(x, yEmpty + 1)));
                     animator.add(new Fusion(getTile(x, yEmpty + 1), getTile(x, yEmpty + 1).getFutureValue().next()));
+                    score += getTile(x, yEmpty + 1).getFutureValue().next().getValue();
                     delay = 100;
                     yLimit--;
                 } else if (yEmpty > y) {
@@ -190,6 +202,7 @@ public class Game2048 extends JPanel {
                 if (xEmpty > xLimit && getTile(xEmpty - 1, y).getFutureValue() == tile.getValue()) {
                     animator.add(new Move(tile, getTile(xEmpty - 1, y)));
                     animator.add(new Fusion(getTile(xEmpty - 1, y), getTile(xEmpty - 1, y).getFutureValue().next()));
+                    score += getTile(xEmpty - 1, y).getFutureValue().next().getValue();
                     delay = 100;
                     xLimit++;
                 } else if (xEmpty < x) {
@@ -215,6 +228,7 @@ public class Game2048 extends JPanel {
                 if (xEmpty < xLimit && getTile(xEmpty + 1, y).getFutureValue() == tile.getValue()) {
                     animator.add(new Move(tile, getTile(xEmpty + 1, y)));
                     animator.add(new Fusion(getTile(xEmpty + 1, y), getTile(xEmpty + 1, y).getFutureValue().next()));
+                    score += getTile(xEmpty + 1, y).getFutureValue().next().getValue();
                     delay = 100;
                     xLimit--;
                 } else if (xEmpty > x) {
@@ -248,12 +262,41 @@ public class Game2048 extends JPanel {
         super.paint(g_);
         final Graphics2D g = (Graphics2D) g_;
         g.setColor(BACKGROUND);
-        g.fillRect(0, 0, 495, 495);
+        g.fillRect(0, 0, 539, 691);
+        final String score = Integer.toString(this.score);
+        Font font = FONT.deriveFont(40f);
+        Rectangle2D bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
+        final int width = Math.max(102, 32 + (int) bounds.getWidth());
+        g.setColor(GRID_BACKGROUND);
+        g.fillRoundRect(517 - width, 22, width, 92, 6, 6);
+        g.setColor(GRID_BACKGROUND);
+        g.fillRoundRect(22, 136, 495, 495, 6, 6);
+        g.setColor(HEADER_COLOR);
+        font = FONT.deriveFont(23f);
+        g.setFont(font);
+        bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), "SCORE").getVisualBounds();
+        g.drawString("SCORE", 516 - (int) bounds.getWidth() - (int) ((width - bounds.getWidth()) / 2f), 54);
+        g.setColor(TEXT_COLOR);
+        font = FONT.deriveFont(40f);
+        g.setFont(font);
+        bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
+        final int offset = score.startsWith("1") ? 4 : 0;
+        g.drawString(score, 515 - offset - (int) bounds.getWidth() - (int) ((width - bounds.getWidth()) / 2f), 98);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
         for (final Tile tile : board)
             tile.paint(g);
         animator.paint(g);
+        g.setColor(FOOTER_COLOR);
+        font = FONT.deriveFont(23f);
+        g.setFont(font);
+        g.drawString(moves + " moves", 22, 669);
+        final long millis = animator.elapsed();
+        final int minutes = (int) (millis / 60000L);
+        final int seconds = (int) ((millis - minutes * 60000L) / 1000L);
+        final String time = String.format(minutes + ":%02d", seconds);
+        bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), time).getVisualBounds();
+        g.drawString(time, 515 - (int) bounds.getWidth(), 669);
         if (gameOver != null)
             gameOver.forcePaint(g);
     }

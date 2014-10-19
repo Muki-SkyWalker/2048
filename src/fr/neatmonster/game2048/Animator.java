@@ -31,10 +31,21 @@ import java.util.List;
 class Animator extends Thread {
     private final Game2048 game;
     private final List<Animation> animations = new ArrayList<Animation>();
+    private       long            start      = 0L;
+    private       long            current    = 0L;
+    private       boolean         freeze     = false;
     private       boolean         wasPlaying = false;
 
     public Animator(final Game2048 game) {
         this.game = game;
+    }
+
+    public void reset() {
+        start = current = System.currentTimeMillis();
+    }
+
+    public long elapsed() {
+        return (freeze ? current : System.currentTimeMillis()) - start;
     }
 
     public void paint(final Graphics2D g) {
@@ -50,12 +61,19 @@ class Animator extends Thread {
     @Override
     public void run() {
         while (true) {
+            if (!freeze && System.currentTimeMillis() - current >= 1000L) {
+                game.repaint();
+                current += 1000L;
+            }
             if (isPlaying()) {
                 wasPlaying = true;
                 game.repaint();
             } else if (wasPlaying) {
-                if (game.isBlocked() && game.gameOver == null)
+                if (game.isBlocked() && game.gameOver == null) {
                     add(new GameOver(game));
+                    current = System.currentTimeMillis();
+                    freeze = true;
+                }
                 wasPlaying = false;
             }
             try {

@@ -57,6 +57,10 @@ public enum TileValue {
         this.offset = offset;
     }
 
+    public int getValue() {
+        return value;
+    }
+
     public void paint(final Graphics2D g, final int x, final int y) {
         paint(g, x, y, this == TileValue.TILE_EMPTY ? 90 : 255, 105);
     }
