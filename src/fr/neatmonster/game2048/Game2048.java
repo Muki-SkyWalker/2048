@@ -53,6 +53,7 @@ public class Game2048 extends JPanel {
     private final Animator animator;
     private final Tile[]   board    = new Tile[16];
     public        GameOver gameOver = null;
+    public        GameWon  gameWon  = null;
     public        int      scoreX   = 0;
     private       int      best     = 0;
     private       int      moves    = 0;
@@ -71,7 +72,8 @@ public class Game2048 extends JPanel {
             @Override
             public void keyPressed(final KeyEvent e) {
                 final int key = e.getKeyCode();
-                if (animator.isPlaying() && gameOver == null && (key == 27 || key >= 37 && key <= 40))
+                if (animator.isPlaying() && gameOver == null && (gameWon == null || gameWon.hasTerminated())
+                        && (key == 27 || key >= 37 && key <= 40))
                     animator.terminate(false);
                 else if (animator.isPlaying())
                     return;
@@ -90,6 +92,10 @@ public class Game2048 extends JPanel {
                     delay = moveRight();
                 else
                     return;
+                if (gameWon != null && gameWon.isVisible()) {
+                    animator.unfreeze();
+                    gameWon.hide();
+                }
                 moves++;
                 if (delay > 0)
                     insertRandomTile(delay);
@@ -104,6 +110,7 @@ public class Game2048 extends JPanel {
         frame.setTitle("2048");
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setIconImage(new ImageIcon(Game2048.class.getResource("/icon.png")).getImage());
         frame.add(game);
         frame.pack();
         frame.setLocationRelativeTo(null);
@@ -115,6 +122,7 @@ public class Game2048 extends JPanel {
             best = score;
         moves = score = 0;
         gameOver = null;
+        gameWon = null;
         animator.reset();
         animator.terminate(true);
         for (final Tile tile : board)
@@ -126,6 +134,13 @@ public class Game2048 extends JPanel {
 
     Tile getTile(final int x, final int y) {
         return board[x + y * 4];
+    }
+
+    public boolean hasWon() {
+        for (final Tile tile : board)
+            if (tile.getValue() == TileValue.TILE_2048)
+                return true;
+        return false;
     }
 
     public boolean isBlocked() {
@@ -296,7 +311,7 @@ public class Game2048 extends JPanel {
         g.setFont(font);
         g.drawString("2048", 22, 95);
         final String best = Integer.toString(this.best);
-        font = FONT.deriveFont(40f);
+        font = FONT.deriveFont(this.best > 99999 ? 28f : this.best > 9999 ? 34f : 40f);
         Rectangle2D bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), best).getVisualBounds();
         final int bestWidth = Math.max(85, 32 + (int) bounds.getWidth());
         g.setColor(GRID_BACKGROUND);
@@ -307,13 +322,14 @@ public class Game2048 extends JPanel {
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), "BEST").getVisualBounds();
         g.drawString("BEST", 516 - (int) bounds.getWidth() - (int) ((bestWidth - bounds.getWidth()) / 2f), 54);
         g.setColor(TEXT_COLOR);
-        font = FONT.deriveFont(40f);
+        font = FONT.deriveFont(this.best > 99999 ? 28f : this.best > 9999 ? 34f : 40f);
         g.setFont(font);
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), best).getVisualBounds();
         int offset = best.startsWith("1") ? 4 : 0;
-        g.drawString(best, 515 - offset - (int) bounds.getWidth() - (int) ((bestWidth - bounds.getWidth()) / 2f), 98);
+        g.drawString(best, 515 - offset - (int) bounds.getWidth() - (int) ((bestWidth - bounds.getWidth()) / 2f),
+                98 - (this.best > 99999 ? 4 : this.best > 9999 ? 2 : 0));
         final String score = Integer.toString(this.score);
-        font = FONT.deriveFont(40f);
+        font = FONT.deriveFont(this.score > 99999 ? 28f : this.score > 9999 ? 34f : 40f);
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
         final int scoreWidth = Math.max(102, 32 + (int) bounds.getWidth());
         g.setColor(GRID_BACKGROUND);
@@ -324,12 +340,12 @@ public class Game2048 extends JPanel {
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), "SCORE").getVisualBounds();
         g.drawString("SCORE", 516 - bestWidth - 16 - (int) bounds.getWidth() - (int) ((scoreWidth - bounds.getWidth()) / 2f), 54);
         g.setColor(TEXT_COLOR);
-        font = FONT.deriveFont(40f);
+        font = FONT.deriveFont(this.score > 99999 ? 28f : this.score > 9999 ? 34f : 40f);
         g.setFont(font);
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
         offset = score.startsWith("1") ? 4 : 0;
         scoreX = 515 - bestWidth - 16 - offset - (int) ((scoreWidth - bounds.getWidth()) / 2f);
-        g.drawString(score, scoreX - (int) bounds.getWidth(), 98);
+        g.drawString(score, scoreX - (int) bounds.getWidth(), 98 - (this.score > 99999 ? 4 : this.score > 9999 ? 2 : 0));
         g.setColor(GRID_BACKGROUND);
         g.fillRoundRect(22, 136, 495, 495, 6, 6);
         for (final Tile tile : board)
@@ -347,5 +363,7 @@ public class Game2048 extends JPanel {
         g.drawString(time, 515 - (int) bounds.getWidth(), 669);
         if (gameOver != null)
             gameOver.forcePaint(g);
+        else if (gameWon != null && gameWon.hasTerminated())
+            gameWon.forcePaint(g);
     }
 }

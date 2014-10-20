@@ -58,6 +58,11 @@ class Animator extends Thread {
         }
     }
 
+    public void unfreeze() {
+        freeze = false;
+        start += System.currentTimeMillis() - current;
+    }
+
     @Override
     public void run() {
         while (true) {
@@ -69,8 +74,13 @@ class Animator extends Thread {
                 wasPlaying = true;
                 game.repaint();
             } else if (wasPlaying) {
-                if (game.isBlocked() && game.gameOver == null) {
+                if (game.gameOver == null && game.isBlocked()) {
                     add(new GameOver(game));
+                    current = System.currentTimeMillis();
+                    freeze = true;
+                } else if (game.gameWon == null && game.hasWon()) {
+                    game.gameWon = new GameWon();
+                    add(game.gameWon);
                     current = System.currentTimeMillis();
                     freeze = true;
                 }
