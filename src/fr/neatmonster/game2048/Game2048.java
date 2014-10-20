@@ -53,6 +53,7 @@ public class Game2048 extends JPanel {
     private final Animator animator;
     private final Tile[]   board    = new Tile[16];
     public        GameOver gameOver = null;
+    public        int      scoreX   = 0;
     private       int      best     = 0;
     private       int      moves    = 0;
     private       int      score    = 0;
@@ -142,7 +143,7 @@ public class Game2048 extends JPanel {
     }
 
     int moveUp() {
-        int yLimit, delay = 0;
+        int scoreInc = 0, yLimit, delay = 0;
         for (int x = 0; x < 4; x++) {
             yLimit = 0;
             for (int y = 1; y < 4; y++) {
@@ -156,6 +157,7 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(x, yEmpty - 1)));
                     animator.add(new Fusion(getTile(x, yEmpty - 1), getTile(x, yEmpty - 1).getFutureValue().next()));
                     score += getTile(x, yEmpty - 1).getFutureValue().next().getValue();
+                    scoreInc += getTile(x, yEmpty - 1).getFutureValue().next().getValue();
                     if (score > best)
                         best = score;
                     delay = 100;
@@ -166,11 +168,13 @@ public class Game2048 extends JPanel {
                 }
             }
         }
+        if (scoreInc > 0)
+            animator.add(new Score(this, scoreInc));
         return delay;
     }
 
     int moveDown() {
-        int yLimit, delay = 0;
+        int scoreInc = 0, yLimit, delay = 0;
         for (int x = 0; x < 4; x++) {
             yLimit = 3;
             for (int y = 2; y >= 0; y--) {
@@ -184,6 +188,7 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(x, yEmpty + 1)));
                     animator.add(new Fusion(getTile(x, yEmpty + 1), getTile(x, yEmpty + 1).getFutureValue().next()));
                     score += getTile(x, yEmpty + 1).getFutureValue().next().getValue();
+                    scoreInc += getTile(x, yEmpty + 1).getFutureValue().next().getValue();
                     if (score > best)
                         best = score;
                     delay = 100;
@@ -194,11 +199,13 @@ public class Game2048 extends JPanel {
                 }
             }
         }
+        if (scoreInc > 0)
+            animator.add(new Score(this, scoreInc));
         return delay;
     }
 
     int moveLeft() {
-        int xLimit, delay = 0;
+        int scoreInc = 0, xLimit, delay = 0;
         for (int y = 0; y < 4; y++) {
             xLimit = 0;
             for (int x = 1; x < 4; x++) {
@@ -212,6 +219,7 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(xEmpty - 1, y)));
                     animator.add(new Fusion(getTile(xEmpty - 1, y), getTile(xEmpty - 1, y).getFutureValue().next()));
                     score += getTile(xEmpty - 1, y).getFutureValue().next().getValue();
+                    scoreInc += getTile(xEmpty - 1, y).getFutureValue().next().getValue();
                     if (score > best)
                         best = score;
                     delay = 100;
@@ -222,11 +230,13 @@ public class Game2048 extends JPanel {
                 }
             }
         }
+        if (scoreInc > 0)
+            animator.add(new Score(this, scoreInc));
         return delay;
     }
 
     int moveRight() {
-        int xLimit, delay = 0;
+        int scoreInc = 0, xLimit, delay = 0;
         for (int y = 0; y < 4; y++) {
             xLimit = 3;
             for (int x = 2; x >= 0; x--) {
@@ -240,6 +250,7 @@ public class Game2048 extends JPanel {
                     animator.add(new Move(tile, getTile(xEmpty + 1, y)));
                     animator.add(new Fusion(getTile(xEmpty + 1, y), getTile(xEmpty + 1, y).getFutureValue().next()));
                     score += getTile(xEmpty + 1, y).getFutureValue().next().getValue();
+                    scoreInc += getTile(xEmpty + 1, y).getFutureValue().next().getValue();
                     if (score > best)
                         best = score;
                     delay = 100;
@@ -250,6 +261,8 @@ public class Game2048 extends JPanel {
                 }
             }
         }
+        if (scoreInc > 0)
+            animator.add(new Score(this, scoreInc));
         return delay;
     }
 
@@ -315,7 +328,8 @@ public class Game2048 extends JPanel {
         g.setFont(font);
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), score).getVisualBounds();
         offset = score.startsWith("1") ? 4 : 0;
-        g.drawString(score, 515 - bestWidth - 16 - offset - (int) bounds.getWidth() - (int) ((scoreWidth - bounds.getWidth()) / 2f), 98);
+        scoreX = 515 - bestWidth - 16 - offset - (int) ((scoreWidth - bounds.getWidth()) / 2f);
+        g.drawString(score, scoreX - (int) bounds.getWidth(), 98);
         g.setColor(GRID_BACKGROUND);
         g.fillRoundRect(22, 136, 495, 495, 6, 6);
         for (final Tile tile : board)
