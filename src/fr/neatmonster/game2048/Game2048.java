@@ -176,7 +176,7 @@ public class Game2048 extends JPanel {
                     if (score > best)
                         best = score;
                     delay = 100;
-                    yLimit++;
+                    yLimit = yEmpty;
                 } else if (yEmpty < y) {
                     animator.add(new Move(getTile(x, y), getTile(x, yEmpty)));
                     delay = delay < 50 ? 50 : delay;
@@ -207,7 +207,7 @@ public class Game2048 extends JPanel {
                     if (score > best)
                         best = score;
                     delay = 100;
-                    yLimit--;
+                    yLimit = yEmpty;
                 } else if (yEmpty > y) {
                     animator.add(new Move(getTile(x, y), getTile(x, yEmpty)));
                     delay = delay < 50 ? 50 : delay;
@@ -238,7 +238,7 @@ public class Game2048 extends JPanel {
                     if (score > best)
                         best = score;
                     delay = 100;
-                    xLimit++;
+                    xLimit = xEmpty;
                 } else if (xEmpty < x) {
                     animator.add(new Move(getTile(x, y), getTile(xEmpty, y)));
                     delay = delay < 50 ? 50 : delay;
@@ -269,7 +269,7 @@ public class Game2048 extends JPanel {
                     if (score > best)
                         best = score;
                     delay = 100;
-                    xLimit--;
+                    xLimit = xEmpty;
                 } else if (xEmpty > x) {
                     animator.add(new Move(getTile(x, y), getTile(xEmpty, y)));
                     delay = delay < 50 ? 50 : delay;

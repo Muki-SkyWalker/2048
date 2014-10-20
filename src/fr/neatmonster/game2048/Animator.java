@@ -41,6 +41,7 @@ class Animator extends Thread {
     }
 
     public void reset() {
+        freeze = false;
         start = current = System.currentTimeMillis();
     }
 
