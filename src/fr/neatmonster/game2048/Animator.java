@@ -31,9 +31,9 @@ import java.util.List;
 class Animator extends Thread {
     private final Game2048 game;
     private final List<Animation> animations = new ArrayList<Animation>();
-    private       long            start      = 0L;
     private       long            current    = 0L;
     private       boolean         freeze     = false;
+    private       long            start      = 0L;
     private       boolean         wasPlaying = false;
 
     public Animator(final Game2048 game) {
@@ -43,6 +43,7 @@ class Animator extends Thread {
     public void reset() {
         freeze = false;
         start = current = System.currentTimeMillis();
+        game.scoreboard.logTime(start);
     }
 
     public long elapsed() {
@@ -52,9 +53,23 @@ class Animator extends Thread {
     public void paint(final Graphics2D g) {
         synchronized (animations) {
             for (final Animation animation : new ArrayList<Animation>(animations)) {
-                animation.paint(g);
-                if (animation.hasTerminated())
-                    animations.remove(animation);
+                if (!animation.isSpecial()) {
+                    animation.paint(g);
+                    if (animation.hasTerminated())
+                        animations.remove(animation);
+                }
+            }
+        }
+    }
+
+    public void specialPaint(final Graphics2D g) {
+        synchronized (animations) {
+            for (final Animation animation : new ArrayList<Animation>(animations)) {
+                if (animation.isSpecial()) {
+                    animation.paint(g);
+                    if (animation.hasTerminated())
+                        animations.remove(animation);
+                }
             }
         }
     }
@@ -62,6 +77,7 @@ class Animator extends Thread {
     public void unfreeze() {
         freeze = false;
         start += System.currentTimeMillis() - current;
+        game.scoreboard.logTime(System.currentTimeMillis());
     }
 
     @Override
@@ -71,19 +87,22 @@ class Animator extends Thread {
                 game.repaint();
                 current += 1000L;
             }
-            if (isPlaying()) {
+            if (isPlaying() || game.username.isBlinking()) {
                 wasPlaying = true;
                 game.repaint();
             } else if (wasPlaying) {
                 if (game.gameOver == null && game.isBlocked()) {
-                    add(new GameOver(game));
+                    game.gameOver = new GameOver(game);
+                    add(game.gameOver);
                     current = System.currentTimeMillis();
                     freeze = true;
+                    game.scoreboard.logTime(current);
                 } else if (game.gameWon == null && game.hasWon()) {
                     game.gameWon = new GameWon();
                     add(game.gameWon);
                     current = System.currentTimeMillis();
                     freeze = true;
+                    game.scoreboard.logTime(current);
                 }
                 wasPlaying = false;
             }

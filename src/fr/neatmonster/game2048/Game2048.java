@@ -27,6 +27,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,23 +52,34 @@ public class Game2048 extends JPanel {
         }
     }
 
-    private final Animator animator;
-    private final Tile[]   board    = new Tile[16];
-    public        GameOver gameOver = null;
-    public        GameWon  gameWon  = null;
-    public        int      scoreX   = 0;
-    private       int      best     = 0;
-    private       int      moves    = 0;
-    private       int      score    = 0;
+    public final  TextField  username   = new TextField(this);
+    public final  Button     validate   = new Button(this);
+    public final  Scoreboard scoreboard = new Scoreboard();
+    public final  Animator   animator   = new Animator(this);
+    private final Tile[]     board      = new Tile[16];
+    public        GameOver   gameOver   = null;
+    public        GameWon    gameWon    = null;
+    public        int        scoreX     = 0;
+    private       int        best       = 0;
+    private       int        moves      = 0;
+    private       int        score      = 0;
 
     public Game2048() {
-        animator = new Animator(this);
+        setLayout(null);
         animator.start();
         for (int x = 0; x < 4; x++)
             for (int y = 0; y < 4; y++)
                 board[x + y * 4] = new Tile(x, y);
         reset();
         setFocusable(true);
+        addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mousePressed(final MouseEvent e) {
+                super.mousePressed(e);
+                Game2048.this.requestFocus();
+            }
+        });
         addKeyListener(new KeyAdapter() {
 
             @Override
@@ -122,6 +135,9 @@ public class Game2048 extends JPanel {
             best = score;
         moves = score = 0;
         gameOver = null;
+        remove(username);
+        remove(validate);
+        scoreboard.reset();
         gameWon = null;
         animator.reset();
         animator.terminate(true);
@@ -158,6 +174,7 @@ public class Game2048 extends JPanel {
     }
 
     int moveUp() {
+        scoreboard.logMove((byte) 1);
         int scoreInc = 0, yLimit, delay = 0;
         for (int x = 0; x < 4; x++) {
             yLimit = 0;
@@ -189,6 +206,7 @@ public class Game2048 extends JPanel {
     }
 
     int moveDown() {
+        scoreboard.logMove((byte) 2);
         int scoreInc = 0, yLimit, delay = 0;
         for (int x = 0; x < 4; x++) {
             yLimit = 3;
@@ -220,6 +238,7 @@ public class Game2048 extends JPanel {
     }
 
     int moveLeft() {
+        scoreboard.logMove((byte) 3);
         int scoreInc = 0, xLimit, delay = 0;
         for (int y = 0; y < 4; y++) {
             xLimit = 0;
@@ -251,6 +270,7 @@ public class Game2048 extends JPanel {
     }
 
     int moveRight() {
+        scoreboard.logMove((byte) 4);
         int scoreInc = 0, xLimit, delay = 0;
         for (int y = 0; y < 4; y++) {
             xLimit = 3;
@@ -295,12 +315,21 @@ public class Game2048 extends JPanel {
             final Tile tile = tiles.get(random.nextInt(tiles.size()));
             final TileValue value = random.nextFloat() < 0.9f ? TileValue.TILE_2 : TileValue.TILE_4;
             animator.add(new Appear(tile, value, delay));
+            scoreboard.logAdd(tile, value);
         }
     }
 
     @Override
     public void paint(final Graphics g_) {
         super.paint(g_);
+        final Graphics2D g = (Graphics2D) g_;
+        animator.specialPaint(g);
+    }
+
+
+    @Override
+    public void paintComponent(final Graphics g_) {
+        super.paintComponent(g_);
         final Graphics2D g = (Graphics2D) g_;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
@@ -361,7 +390,7 @@ public class Game2048 extends JPanel {
         final String time = String.format(minutes + ":%02d", seconds);
         bounds = font.createGlyphVector(g.getFontMetrics(font).getFontRenderContext(), time).getVisualBounds();
         g.drawString(time, 515 - (int) bounds.getWidth(), 669);
-        if (gameOver != null)
+        if (gameOver != null && gameOver.hasTerminated())
             gameOver.forcePaint(g);
         else if (gameWon != null && gameWon.hasTerminated())
             gameWon.forcePaint(g);

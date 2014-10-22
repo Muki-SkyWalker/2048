@@ -25,44 +25,17 @@ package fr.neatmonster.game2048;
 
 import java.awt.*;
 
-class Animation implements Comparable {
-    private final boolean special;
-    int duration;
-    int current;
+public class Error extends Animation {
 
-    Animation(final int duration) {
-        this(duration, false);
-    }
-
-    Animation(final int duration, final boolean special) {
-        this.duration = duration;
-        this.special = special;
-    }
-
-    public boolean isSpecial() {
-        return special;
-    }
-
-    public void paint(final Graphics2D g) {
-        if (++current >= duration)
-            terminate();
-    }
-
-    void terminate() {
-    }
-
-    public boolean hasTerminated() {
-        return current >= duration;
-    }
-
-    float getPercentage() {
-        return (float) current / (float) duration;
+    public Error() {
+        super(300, true);
     }
 
     @Override
-    public int compareTo(final Object o) {
-        if (o instanceof Animation)
-            return duration - ((Animation) o).duration;
-        return 1;
+    public void paint(final Graphics2D g) {
+        super.paint(g);
+        g.setColor(new Color(255, 0, 0, (int) ((1f - getPercentage()) * 255f)));
+        g.setFont(Game2048.FONT.deriveFont(18f));
+        g.drawString("Error", 369, 446 - (int) (getPercentage() * 150f));
     }
 }

@@ -29,7 +29,7 @@ public class GameWon extends Animation {
     private boolean hidden = false;
 
     public GameWon() {
-        super(800);
+        super(100);
     }
 
     public void hide() {
